@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/immutability */
-/* eslint-disable no-unused-vars */
 import { useForm } from 'react-hook-form';
 import client from '../api/client';
 
