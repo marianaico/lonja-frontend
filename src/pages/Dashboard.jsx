@@ -9,7 +9,7 @@ export default function Dashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await client.post("/reportes/diarios", {
+      await client.post("/reportes/diarios/add", {
         fecha,
         ventas,
         compras
