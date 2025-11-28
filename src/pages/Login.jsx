@@ -9,11 +9,11 @@ export default function Login() {
     try {
       const { data } = await client.post('/auth/login', values);
       localStorage.setItem('token', data.token);
-      
+
       window.location.replace('/');
        // O usa navigate("/") si usas React Router
     } catch (e) {
-      alert('Credenciales inválidas');
+      alert('Credenciales inválidas' );
     }
   };
 
