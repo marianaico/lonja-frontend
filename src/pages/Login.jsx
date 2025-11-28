@@ -6,6 +6,7 @@ export default function Login() {
   const { register, handleSubmit } = useForm();
 
   const onSubmit = async (values) => {
+     console.log("VALUES FRONT:", values);
     try {
       const { data } = await client.post('/auth/login', values);
       localStorage.setItem('token', data.token);
