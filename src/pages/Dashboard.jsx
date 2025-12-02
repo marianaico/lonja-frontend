@@ -1,53 +1,44 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import client from "../api/client";
-
-const productos = [
-  { nombre: "Camarón", precio: 180 },
-  { nombre: "Huachinango", precio: 220 },
-  { nombre: "Calamar", precio: 160 },
-  { nombre: "Jaiba", precio: 130 },
-  { nombre: "Mojarra", precio: 90 },
-  { nombre: "Pulpo", precio: 250 },
-  { nombre: "Ostión", precio: 140 },
-  { nombre: "Langostino", precio: 200 }
-];
+import "./dashboard.css";
 
 export default function Dashboard() {
   const [fecha, setFecha] = useState("");
   const [ventas, setVentas] = useState([]);
   const [total, setTotal] = useState(0);
-  const [reportes, setReportes] = useState([]);
+
   const navigate = useNavigate();
 
+  const productos = [
+    { nombre: "Camarón", precio: 180 },
+    { nombre: "Huachinango", precio: 220 },
+    { nombre: "Calamar", precio: 160 },
+    { nombre: "Jaiba", precio: 130 },
+    { nombre: "Mojarra", precio: 90 },
+    { nombre: "Pulpo", precio: 250 },
+    { nombre: "Ostión", precio: 140 },
+    { nombre: "Langostino", precio: 200 },
+  ];
+
   useEffect(() => {
-    cargarReportes();
-  }, []);
+    let suma = 0;
+    ventas.forEach(v => suma += v.precio);
+    setTotal(suma);
+  }, [ventas]);
 
-  const cargarReportes = async () => {
-    try {
-      const res = await client.get("/reportes/diario");
-      setReportes(res.data);
-    } catch (err) {
-      console.error("Error al cargar reportes", err);
-    }
-  };
-
-  const agregarProducto = (p) => {
-    const nuevasVentas = [...ventas, p];
-    setVentas(nuevasVentas);
-    setTotal(nuevasVentas.reduce((acc, v) => acc + v.precio, 0));
+  const agregarProducto = (producto) => {
+    setVentas([...ventas, producto]);
   };
 
   const eliminarProducto = (index) => {
-    const nuevasVentas = ventas.filter((_, i) => i !== index);
-    setVentas(nuevasVentas);
-    setTotal(nuevasVentas.reduce((acc, v) => acc + v.precio, 0));
+    const nuevaLista = ventas.filter((_, i) => i !== index);
+    setVentas(nuevaLista);
   };
 
   const guardarReporte = async () => {
     if (!fecha || ventas.length === 0) {
-      alert("Selecciona fecha y productos");
+      alert("Selecciona fecha y al menos un producto");
       return;
     }
 
@@ -57,81 +48,67 @@ export default function Dashboard() {
         ventas
       });
 
-      alert("Reporte guardado correctamente");
+      alert("✅ Reporte guardado correctamente");
       setFecha("");
       setVentas([]);
       setTotal(0);
-      cargarReportes();
-    } catch (err) {
-      console.error(err);
-      alert("Error al guardar reporte");
+
+    } catch (error) {
+      console.error(error);
+      alert("❌ Error al guardar reporte");
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+  const salir = () => {
+    localStorage.clear();
+    navigate("/");
   };
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between mb-3">
-        <h2>Sistema Lonja Veracruz</h2>
-        <button onClick={logout} className="btn btn-danger">
-          Salir
-        </button>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1>Sistema Lonja Veracruz</h1>
+        <button className="btn-salir" onClick={salir}>Salir</button>
       </div>
 
-      <input
-        type="date"
-        className="form-control mb-3"
-        value={fecha}
-        onChange={(e) => setFecha(e.target.value)}
-      />
+      <div className="fecha-box">
+        <label>Fecha:</label>
+        <input
+          type="date"
+          value={fecha}
+          onChange={(e) => setFecha(e.target.value)}
+        />
+      </div>
 
-      <h4>Productos</h4>
-      <div className="row mb-3">
+      <h2>Productos</h2>
+
+      <div className="productos-grid">
         {productos.map((p, i) => (
-          <div className="col-6 mb-2" key={i}>
-            <button
-              className="btn btn-primary w-100"
-              onClick={() => agregarProducto(p)}
-            >
-              {p.nombre} - ${p.precio}
-            </button>
-          </div>
+          <button
+            key={i}
+            className="producto-btn"
+            onClick={() => agregarProducto(p)}
+          >
+            {p.nombre} - ${p.precio}
+          </button>
         ))}
       </div>
 
-      <h4>Venta actual</h4>
-      <ul className="list-group mb-3">
+      <h2>Venta actual</h2>
+      <ul className="venta-lista">
         {ventas.map((v, i) => (
-          <li key={i} className="list-group-item d-flex justify-content-between">
+          <li key={i}>
             {v.nombre} - ${v.precio}
-            <button
-              className="btn btn-sm btn-danger"
-              onClick={() => eliminarProducto(i)}
-            >
-              X
-            </button>
+            <button className="btn-x" onClick={() => eliminarProducto(i)}>✖</button>
           </li>
         ))}
       </ul>
 
-      <h3>Total: ${total}</h3>
+      <h2 className="total">Total: ${total}</h2>
 
-      <button className="btn btn-success w-100 mb-4" onClick={guardarReporte}>
+      <button className="btn-guardar" onClick={guardarReporte}>
         Guardar Reporte
       </button>
-
-      <hr />
-
-      <h4>Reportes Guardados</h4>
-      {reportes.map((r, i) => (
-        <div key={i} className="border p-2 mb-2">
-          {new Date(r.fecha).toLocaleDateString()} - Total: ${r.total}
-        </div>
-      ))}
     </div>
   );
 }
