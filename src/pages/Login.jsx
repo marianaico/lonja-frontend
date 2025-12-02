@@ -1,50 +1,47 @@
-import { useForm } from 'react-hook-form';
-import client from '../api/client';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import client from "../api/client";
+import "./auth.css";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const { register, handleSubmit } = useForm();
+  const login = async (e) => {
+    e.preventDefault();
 
-  const onSubmit = async (values) => {
-     console.log("VALUES FRONT:", values);
     try {
-      const { data } = await client.post('/auth/login', values);
-      localStorage.setItem('token', data.token);
-
-      window.location.replace('/');
-      
-    } catch (e) {
-      alert('Credenciales inválidas' );
+      const res = await client.post("/auth/login", { email, password });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      navigate("/dashboard");
+    } catch (err) {
+      alert("Credenciales incorrectas");
     }
   };
 
   return (
-    <div className="container py-5" style={{ maxWidth: 400 }}>
-      <h3>Ingreso</h3>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input
-            className="form-control"
-            {...register('email')}
-          />
-        </div>
+    <div className="auth-container">
+      <form className="auth-card" onSubmit={login}>
+        <h2>Sistema Lonja Veracruz</h2>
 
-        <div className="mb-3">
-          <label className="form-label">Contraseña</label>
-          <input
-            type="password"
-            className="form-control"
-            {...register('password')}
-          />
-        </div>
+        <input
+          placeholder="Correo electrónico"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <button className="btn btn-primary w-100" type="submit">
-          Entrar
-        </button>
+        <input
+          placeholder="Contraseña"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button>Entrar</button>
+        <span onClick={() => navigate("/register")}>Crear cuenta</span>
       </form>
     </div>
   );
 }
-
