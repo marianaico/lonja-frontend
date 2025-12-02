@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import client from "../api/client";
-import "./dashboard.css";
+
 
 export default function Dashboard() {
   const [fecha, setFecha] = useState("");
