@@ -4,9 +4,13 @@ import client from "../api/client";
 
 const productos = [
   { nombre: "Camarón", precio: 180 },
+  { nombre: "Huachinango", precio: 220 },
+  { nombre: "Calamar", precio: 160 },
+  { nombre: "Jaiba", precio: 130 },
   { nombre: "Mojarra", precio: 90 },
   { nombre: "Pulpo", precio: 250 },
-  { nombre: "Calamar", precio: 160 }
+  { nombre: "Ostión", precio: 140 },
+  { nombre: "Langostino", precio: 200 }
 ];
 
 export default function Dashboard() {
@@ -43,7 +47,7 @@ export default function Dashboard() {
 
   const guardarReporte = async () => {
     if (!fecha || ventas.length === 0) {
-      alert("Faltan datos");
+      alert("Selecciona fecha y productos");
       return;
     }
 
@@ -53,7 +57,7 @@ export default function Dashboard() {
         ventas
       });
 
-      alert("Reporte guardado");
+      alert("Reporte guardado correctamente");
       setFecha("");
       setVentas([]);
       setTotal(0);
@@ -102,10 +106,7 @@ export default function Dashboard() {
       <h4>Venta actual</h4>
       <ul className="list-group mb-3">
         {ventas.map((v, i) => (
-          <li
-            key={i}
-            className="list-group-item d-flex justify-content-between"
-          >
+          <li key={i} className="list-group-item d-flex justify-content-between">
             {v.nombre} - ${v.precio}
             <button
               className="btn btn-sm btn-danger"
