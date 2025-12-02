@@ -2,59 +2,59 @@ import client from "../api/client";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const productos = [
+  { nombre: "Camarón", precio: 180 },
+  { nombre: "Mojarra", precio: 90 },
+  { nombre: "Huachinango", precio: 220 },
+  { nombre: "Pulpo", precio: 250 },
+  { nombre: "Calamar", precio: 160 },
+  { nombre: "Ostión", precio: 140 },
+  { nombre: "Jaiba", precio: 130 },
+  { nombre: "Langostino", precio: 200 }
+];
+
 export default function Dashboard() {
   const [fecha, setFecha] = useState("");
-  const [ventas, setVentas] = useState("");
+  const [producto, setProducto] = useState(productos[0]);
+  const [cantidad, setCantidad] = useState(1);
+  const [ventas, setVentas] = useState([]);
   const [compras, setCompras] = useState("");
   const [reportes, setReportes] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchReportes = async () => {
-      try {
-        const res = await client.get("/reportes/diario");
-        setReportes(res.data);
-      } catch (err) {
-        console.error("Error al obtener reportes:", err);
-      }
-    };
-    fetchReportes();
+    cargarReportes();
   }, []);
+
+  const cargarReportes = async () => {
+    const res = await client.get("/reportes/diario");
+    setReportes(res.data);
+  };
+
+  const agregarVenta = () => {
+    const subtotal = producto.precio * cantidad;
+    setVentas([...ventas, { ...producto, cantidad, subtotal }]);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // VALIDACIÓN
-    if (!fecha || !ventas || !compras) {
-      alert("Todos los campos son obligatorios");
+    if (!fecha || ventas.length === 0 || !compras) {
+      alert("Completa todos los datos");
       return;
     }
 
-    if (ventas < 0 || compras < 0) {
-      alert("Ventas y compras no pueden ser negativas");
-      return;
-    }
+    await client.post("/reportes/diarios/add", {
+      fecha: new Date(fecha),
+      ventas,
+      compras
+    });
 
-    try {
-      await client.post("/reportes/diarios/add", {
-        fecha: new Date(fecha).toISOString(),
-        ventas: Number(ventas),
-        compras: Number(compras)
-      });
-
-      alert("Reporte guardado correctamente");
-
-      setFecha("");
-      setVentas("");
-      setCompras("");
-
-      const res = await client.get("/reportes/diario");
-      setReportes(res.data);
-
-    } catch (err) {
-      console.error("Error al guardar reporte:", err);
-      alert("Error al guardar el reporte");
-    }
+    alert("Reporte guardado");
+    setVentas([]);
+    setFecha("");
+    setCompras("");
+    cargarReportes();
   };
 
   const handleLogout = () => {
@@ -64,77 +64,61 @@ export default function Dashboard() {
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Ventas del día</h2>
-        <button className="btn btn-outline-danger" onClick={handleLogout}>
-          Cerrar sesión
-        </button>
+
+      <div className="d-flex justify-content-between">
+        <h2>Agregar Reporte Diario</h2>
+        <button onClick={handleLogout} className="btn btn-danger">Salir</button>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Fecha</label>
-          <input
-            type="date"
-            className="form-control"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            required
-          />
-        </div>
 
-        <div className="mb-3">
-          <label className="form-label">Ventas</label>
-          <input
-            type="number"
-            className="form-control"
-            value={ventas}
-            onChange={(e) => setVentas(e.target.value)}
-            required
-          />
-        </div>
+        <input type="date" className="form-control mb-2"
+          value={fecha} onChange={e => setFecha(e.target.value)} />
 
-        <div className="mb-3">
-          <label className="form-label">Compras</label>
-          <input
-            type="number"
-            className="form-control"
-            value={compras}
-            onChange={(e) => setCompras(e.target.value)}
-            required
-          />
-        </div>
+        <select className="form-control mb-2"
+          onChange={e => setProducto(productos[e.target.value])}>
+          {productos.map((p, i) => (
+            <option key={i} value={i}>{p.nombre} - ${p.precio}</option>
+          ))}
+        </select>
 
-        <button type="submit" className="btn btn-primary">
-          Guardar
+        <input type="number" className="form-control mb-2"
+          value={cantidad} onChange={e => setCantidad(e.target.value)} />
+
+        <button type="button" className="btn btn-secondary mb-3"
+          onClick={agregarVenta}>
+          Agregar producto
         </button>
+
+        <ul>
+          {ventas.map((v, i) => (
+            <li key={i}>
+              {v.producto} x{v.cantidad} = ${v.subtotal}
+            </li>
+          ))}
+        </ul>
+
+        <input type="number" className="form-control mb-2"
+          placeholder="Compras del día"
+          value={compras}
+          onChange={e => setCompras(e.target.value)} />
+
+        <button className="btn btn-primary mt-2">Guardar</button>
+
       </form>
 
       <hr />
 
-      <h3>Reportes Guardados</h3>
-      {reportes.length === 0 ? (
-        <p>No hay reportes disponibles</p>
-      ) : (
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Ventas</th>
-              <th>Compras</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reportes.map((r, i) => (
-              <tr key={i}>
-                <td>{new Date(r.fecha).toLocaleDateString()}</td>
-                <td>{r.ventas}</td>
-                <td>{r.compras}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <h4>Reportes Guardados</h4>
+      <ul>
+        {reportes.map((r, i) => (
+          <li key={i}>
+            {new Date(r.fecha).toLocaleDateString()} - Total Ventas: ${r.totalVentas}
+          </li>
+        ))}
+      </ul>
+
     </div>
   );
 }
+
