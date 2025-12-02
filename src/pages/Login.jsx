@@ -12,7 +12,7 @@ export default function Login() {
       localStorage.setItem('token', data.token);
 
       window.location.replace('/');
-       // O usa navigate("/") si usas React Router
+      
     } catch (e) {
       alert('Credenciales inválidas' );
     }

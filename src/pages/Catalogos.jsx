@@ -12,7 +12,6 @@ export default function Catalogos() {
     setEspecies(e.data);
   };
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, []);
 
   return (
